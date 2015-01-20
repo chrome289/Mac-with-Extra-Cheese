@@ -35,13 +35,13 @@ namespace Mac_with_Extra_Cheese
         static void restart_adapter()
         {
             processStartInfo = new ProcessStartInfo("cmd.exe", @" /c wmic path win32_networkadapter where index=" + adapter_id + " call disable");
-            //processStartInfo.UseShellExecute = false;
-            //processStartInfo.CreateNoWindow = true;
+            processStartInfo.UseShellExecute = false;
+            processStartInfo.CreateNoWindow = true;
             process = Process.Start(processStartInfo);
             process.WaitForExit();
             processStartInfo = new ProcessStartInfo("cmd.exe", @" /c wmic path win32_networkadapter where index=" + adapter_id + " call enable");
-            //processStartInfo.UseShellExecute = false;
-            //processStartInfo.CreateNoWindow = true;
+            processStartInfo.UseShellExecute = false;
+            processStartInfo.CreateNoWindow = true;
             process = Process.Start(processStartInfo);
             process.WaitForExit();
         }
@@ -75,9 +75,12 @@ namespace Mac_with_Extra_Cheese
         public MainWindow()
         {
             InitializeComponent();
+            //StreamReader sw=new StreamReader("C:\Program Files (x86)\Overlook Fing 2.2\set.txt",true);
             adapter_id = (int)updown.Value;
-            MessageBox.Show(adapter_id.ToString());
+            //MessageBox.Show(adapter_id.ToString());
             if (adapter_id < 10)
+                adapter_lead = "000";
+            else
                 adapter_lead = "00";
         }
 
@@ -94,44 +97,28 @@ namespace Mac_with_Extra_Cheese
         {
             try
             {
-                StreamWriter sw = new StreamWriter("d:\\c#\\log.txt", true);
+                StreamWriter sw = new StreamWriter("d:\\log.txt", true);
                 //sw.AutoFlush = true;
                 //Console.SetOut(sw);
-                Dispatcher.Invoke(() => tb1.Text = tb1.Text + "---------------"+"\n", DispatcherPriority.Send);
-                
-
-                //check if already connected
-                if (Process.GetProcessesByName("proxifier").Length < 1)
-                {
-                    Process p = Process.Start(@"C:\Program Files (x86)\Proxifier\proxifier.exe");
-                }
+                Dispatcher.Invoke(() => sw.Write("---------------"+"\n"), DispatcherPriority.Send);
                 ping();
-
                 if (is_connected == true)
                 {
-                    Dispatcher.Invoke(() => tb1.Text = tb1.Text + DateTime.Now + "  You are already connected", DispatcherPriority.Send);
+                    Dispatcher.Invoke(() => sw.Write(DateTime.Now + "  You are already connected"), DispatcherPriority.Send);
                     System.Threading.Thread.Sleep(120000);
                 }
                 else
                 {
-                    //kill proxifier
-                    if (Process.GetProcessesByName("proxifier").Length > 0)
-                    {
-                        Process p = Process.GetProcessesByName("proxifier")[0];
-                        p.Kill();
-                    }
-
                     //generate mac addresses of connected devices
-
                     list.Clear();
-                    File.Delete(@"d:\c#\fing-log.txt");
+                    File.Delete(@"d:\fing-log.txt");
                     Directory.SetCurrentDirectory(@"C:\Program Files (x86)\Overlook Fing 2.2\bin\");
-                    processStartInfo = new ProcessStartInfo("cmd.exe", @" /c fing --silent -r 1 -o table,csv,d:\c#\fing-log.txt");
-                    //processStartInfo.UseShellExecute = false;
-                    //processStartInfo.CreateNoWindow = true;
+                    processStartInfo = new ProcessStartInfo("cmd.exe", @" /c fing --silent -r 1 -o table,csv,d:\fing-log.txt");
+                    processStartInfo.UseShellExecute = false;
+                    processStartInfo.CreateNoWindow = true;
                     process = Process.Start(processStartInfo);
                     process.WaitForExit();
-                    StreamReader reader = new StreamReader(@"d:\c#\fing-log.txt");
+                    StreamReader reader = new StreamReader(@"d:\fing-log.txt");
                     string address;
                     while (reader.EndOfStream != true)
                     {
@@ -170,6 +157,7 @@ namespace Mac_with_Extra_Cheese
                     //check each mac in order
                     while (list.Count != 0)
                     {
+                        MessageBox.Show("sdsd");
                         address = list[0];
                         list.RemoveAt(0);
 
@@ -191,21 +179,8 @@ namespace Mac_with_Extra_Cheese
                             break;
                     }
                     reader.Close();
-                    MessageBox.Show(DateTime.Now + "  Connected");
-                    MessageBox.Show(DateTime.Now + "  Current MAC -- " + mac);
-                    if (Process.GetProcessesByName("proxifier").Length < 2)
-                    {
-                        Process p = Process.Start(@"C:\Program Files (x86)\Proxifier\proxifier.exe");
-                    }
-                    //if (is_connected == false)
-                    //{
-                    //Environment.Exit(0);
-                    //reset mac address
-                    //reg_string = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\00" + adapter_id;
-                    //mac = (string)Registry.GetValue(reg_string, "NetworkAddress", "none");
-                    //Registry.SetValue(reg_string, "NetworkAddress", "08-2E-5F-74-CA-73");
-                    //}
-
+                    sw.Write(DateTime.Now + "  Connected");
+                    sw.Write(DateTime.Now + "  Current MAC -- " + mac);
                     sw.Close();
                     sw.Dispose();
                     GC.Collect();
@@ -227,11 +202,23 @@ namespace Mac_with_Extra_Cheese
             adapter_id = (int)updown.Value;
             if (adapter_id < 10)
                 adapter_lead = "000";
+            else
+                adapter_lead = "00";
         }
 
         private void bt1_Click(object sender, RoutedEventArgs e)
         {
             prog();
+        }
+
+        private void bt2_Click(object sender, RoutedEventArgs e)
+        {
+            
+            //reset mac address
+            reg_string = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\"+adapter_lead + adapter_id;
+            mac = (string)Registry.GetValue(reg_string, "NetworkAddress", "none");
+            Registry.SetValue(reg_string, "NetworkAddress", tb2.Text);
+            Environment.Exit(0);
         }
 
     }
