@@ -124,7 +124,7 @@ namespace Mac_with_Extra_Cheese
                         list.Clear();
                         File.Delete(@"c:\temp\fing-log.txt");
                         Directory.SetCurrentDirectory(@"C:\Program Files (x86)\Overlook Fing 2.2\bin\");
-                        processStartInfo = new ProcessStartInfo("cmd.exe", @" /c fing --silent -r 1 -o table,csv,d:\fing-log.txt");
+                        processStartInfo = new ProcessStartInfo("cmd.exe", @" /c fing --silent -r 1 -o table,csv,c:\temp\fing-log.txt");
                         processStartInfo.UseShellExecute = false;
                         processStartInfo.CreateNoWindow = true;
                         process = Process.Start(processStartInfo);
